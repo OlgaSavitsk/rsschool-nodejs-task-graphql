@@ -6,6 +6,12 @@ import { UUIDType } from './types/uuid.js';
 import { ProfilesType } from './types/profiles.types.js';
 import { UserType } from './types/user.types.js';
 import { MemberTypeId } from '../member-types/schemas.js';
+import { MemberType, Post, User } from '@prisma/client';
+import {
+  ResolveTree,
+  parseResolveInfo,
+  simplifyParsedResolveInfoFragmentWithType,
+} from 'graphql-parse-resolve-info';
 
 export const query = new GraphQLObjectType({
   name: 'query',
@@ -17,14 +23,15 @@ export const query = new GraphQLObjectType({
       },
     },
     memberType: {
-      type: new GraphQLList(MemberTypeType),
-      args: { id: { type: MemberTypeTypeId } },
-      resolve: async (_, args: { id: MemberTypeId }, { prisma }: ContextQL) =>
-        {return await prisma.memberType.findUnique({
+      type: new GraphQLNonNull(MemberTypeType),
+      args: { id: { type: new GraphQLNonNull(MemberTypeTypeId) } },
+      resolve: async (_, args: { id: MemberType['id'] }, { prisma }: ContextQL) => {
+        return await prisma.memberType.findUnique({
           where: {
             id: args.id,
           },
-        })},
+        });
+      },
     },
     posts: {
       type: new GraphQLList(PostsType),
@@ -35,10 +42,10 @@ export const query = new GraphQLObjectType({
     post: {
       type: PostsType,
       args: { id: { type: new GraphQLNonNull(UUIDType) } },
-      resolve: async (_, { id }: { id: string }, { prisma }: ContextQL) =>
+      resolve: async (_, args: { id: Post['id'] }, { prisma }: ContextQL) =>
         await prisma.post.findUnique({
           where: {
-            id: id,
+            id: args.id,
           },
         }),
     },
@@ -59,15 +66,22 @@ export const query = new GraphQLObjectType({
     },
     users: {
       type: new GraphQLList(UserType),
-      resolve: async (_, _args, { prisma }: ContextQL) => await prisma.user.findMany(),
+      resolve: async (_, _args, { prisma }: ContextQL, info) => {
+        const parsedResolveInfoFragment = parseResolveInfo(info);
+        const { fields } = simplifyParsedResolveInfoFragmentWithType(
+          parsedResolveInfoFragment as ResolveTree,
+          UserType,
+        );
+        return await prisma.user.findMany();
+      },
     },
     user: {
       type: UserType,
-      args: { id: { type: UUIDType } },
-      resolve: async (_, { id }: { id: string }, { prisma }: ContextQL) =>
+      args: { id: { type: new GraphQLNonNull(UUIDType) } },
+      resolve: async (_, args: { id: User['id'] }, { prisma }: ContextQL) =>
         await prisma.user.findUnique({
           where: {
-            id: id,
+            id: args.id,
           },
         }),
     },
