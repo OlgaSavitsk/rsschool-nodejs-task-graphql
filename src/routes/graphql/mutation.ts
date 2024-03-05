@@ -33,9 +33,7 @@ export const mutations = new GraphQLObjectType<ContextQL>({
       resolve: (
         { prisma }: { prisma: PrismaClient },
         { args }: { args: Omit<Profile, 'id'> },
-      ) => 
-        console.log('!!!!!!',args)
-      // prisma.profile.create({ data: args })}),
+      ) => prisma.profile.create({ data: args }),
     },
     changeProfile: {
       type: ProfilesType,

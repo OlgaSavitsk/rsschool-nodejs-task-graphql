@@ -6,7 +6,7 @@ import {
 } from 'graphql';
 import { UUIDType } from './uuid.js';
 import { MemberTypeType, MemberTypeTypeId } from './member.types.js';
-import { MemberType, Profile } from '@prisma/client';
+import { Profile } from '@prisma/client';
 import { ContextQL } from '../context.js';
 import { UserType } from './user.types.js';
 
